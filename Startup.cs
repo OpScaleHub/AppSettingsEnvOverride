@@ -33,19 +33,18 @@ public class Startup
         services.Configure<AppSettings>(options =>
         {
             // Bind static settings from appsettings.json
-            _configuration.GetSection("AppSettings").Bind(options);
+            var appSettingsSection = _configuration.GetSection("AppSettings");
+            foreach (var setting in appSettingsSection.GetChildren())
+            {
+                options.DynamicSettings[setting.Key] = setting.Value;
+                _logger.LogDebug($"Added static setting: {setting.Key} = {setting.Value}");
+            }
 
             // Log static settings
             _logger.LogInformation("Static settings from appsettings.json:");
-            foreach (var property in typeof(AppSettings).GetProperties())
+            foreach (var setting in options.DynamicSettings)
             {
-                var key = property.Name;
-                var value = property.GetValue(options)?.ToString();
-                if (!string.IsNullOrEmpty(value))
-                {
-                    _logger.LogInformation($"StaticSetting: {key} = {value}");
-                    options.DynamicSettings[key] = value; // Add to DynamicSettings
-                }
+                _logger.LogInformation($"StaticSetting: {setting.Key} = {setting.Value}");
             }
 
             // Merge environment variables into DynamicSettings
@@ -61,6 +60,7 @@ public class Startup
                     {
                         _logger.LogInformation($"EnvVariable: {settingKey} = {value}");
                         options.DynamicSettings[settingKey] = value;
+                        _logger.LogDebug($"Merged environment variable: {settingKey} = {value}");
                     }
                 }
             }
@@ -99,7 +99,5 @@ public class Startup
 // AppSettings class to bind configuration values.
 public class AppSettings
 {
-    public string ExampleSetting { get; set; }
-    public string DemoVariable { get; set; }
     public Dictionary<string, string> DynamicSettings { get; set; } = new Dictionary<string, string>();
 }

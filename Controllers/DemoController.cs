@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using AppSettingsEnvOverride.Models;
-using System; // Add this directive to fix the Environment reference
+using System;
 
 namespace AppSettingsEnvOverride.Controllers
 {
@@ -33,12 +33,7 @@ namespace AppSettingsEnvOverride.Controllers
                     Message = "DynamicSettings is empty",
                     DebugInfo = new
                     {
-                        StaticSettings = new
-                        {
-                            _appSettings.ExampleSetting,
-                            _appSettings.DemoVariable
-                        },
-                        EnvironmentVariables = System.Environment.GetEnvironmentVariables() // Fully qualify Environment
+                        EnvironmentVariables = Environment.GetEnvironmentVariables()
                     }
                 });
             }
