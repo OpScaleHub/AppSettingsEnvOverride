@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appsettings-env-override
+  labels:
+    app: appsettings-env-override
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: appsettings-env-override
+  template:
+    metadata:
+      labels:
+        app: appsettings-env-override
+    spec:
+      containers:
+      - name: appsettings-env-override
+        image: your-dockerhub-username/appsettings-env-override:latest
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        env:
+        - name: EXAMPLE_SETTING
+          value: "Hello from Kubernetes"
+        - name: DEMO_VARIABLE
+          value: "Demo Value"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: appsettings-env-override
+spec:
+  selector:
+    app: appsettings-env-override
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer
