@@ -1,6 +1,6 @@
 # AppSettings Environment Override
 
-This application demonstrates how to use hierarchical configuration in .NET with the ability to override settings using environment variables.
+A .NET application demonstrating dynamic configuration management with environment variable overrides.
 
 ## Configuration Structure
 
@@ -19,6 +19,25 @@ The application uses a base configuration from `appsettings.json`:
 }
 ```
 
+## API Documentation
+
+### Swagger UI
+The API documentation is available through Swagger UI:
+- URL: `http://localhost:<port>/swagger`
+- Interactive API documentation and testing interface
+- API specification available at: `http://localhost:<port>/swagger/v1/swagger.json`
+- To enable Swagger, ensure the application is running with `ASPNETCORE_ENVIRONMENT=Development`:
+  ```bash
+  export ASPNETCORE_ENVIRONMENT=Development
+  dotnet run
+  ```
+
+### Health Check
+The application includes a health check endpoint:
+- URL: `http://localhost:<port>/health`
+- Returns HTTP 200 OK when the application is healthy
+- Useful for container orchestration and monitoring
+
 ## Environment Variable Override
 
 You can override any setting using environment variables by following these naming conventions:
@@ -36,6 +55,32 @@ You can override any setting using environment variables by following these nami
    ```bash
    AppSettings_nested__Baz=BazBaz
    ```
+
+### Environment Variable Override Format
+Override any configuration value using environment variables:
+```bash
+# Format: AppSettings_[Path]__[SubPath]
+AppSettings_Database__ConnectionString="new-value"
+AppSettings_Api__Timeout="30"
+```
+
+### Nested Configuration Example
+For deeply nested configurations:
+```json
+{
+  "AppSettings": {
+    "Database": {
+      "Server": {
+        "Host": "localhost"
+      }
+    }
+  }
+}
+```
+Can be overridden with:
+```bash
+AppSettings_Database__Server__Host="new-host"
+```
 
 ## Running with Docker
 
@@ -78,3 +123,13 @@ Response:
 4. Nested settings use `__` as a delimiter in environment variables
 
 This allows for flexible configuration management where base settings can be provided in files while specific overrides can be injected through environment variables, making it ideal for containerized deployments.
+
+## Validation
+- All configuration values are validated during startup
+- Invalid configurations will prevent application startup
+- Check logs for validation errors
+
+## Logging
+- All configuration values are logged during startup
+- Environment variable overrides are logged separately
+- Use log level 'Information' to view configuration loading details

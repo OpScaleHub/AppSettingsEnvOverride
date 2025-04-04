@@ -76,7 +76,15 @@ catch (Exception ex)
 // Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "AppSettings Environment Override API",
+        Version = "v1",
+        Description = "API for demonstrating configuration management with environment variable overrides"
+    });
+});
 builder.Services.AddHealthChecks();
 builder.Services.AddSingleton(appSettings);
 
@@ -91,14 +99,21 @@ app.Use(async (context, next) =>
     await next();
 });
 
+// Configure Swagger - now before UseRouting
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "AppSettings Environment Override API v1");
+    c.RoutePrefix = "swagger";
+});
+
+app.UseRouting();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-    app.UseSwagger();
-    app.UseSwaggerUI();
 }
 
-app.UseRouting();
 app.MapControllers();
 app.MapHealthChecks("/health");
 
