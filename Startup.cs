@@ -1,10 +1,11 @@
-using System; // Add this directive
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.FileProviders;
+using AppSettingsEnvOverride.Models; // Update namespace reference
 
 public class Startup
 {
@@ -22,6 +23,8 @@ public class Startup
 
         // Replace the default PhysicalFileProvider to disable file watching globally.
         services.AddSingleton<IFileProvider>(new NullFileProvider());
+
+        services.Configure<AppSettings>(_configuration.GetSection("AppSettings")); // Bind AppSettings section
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -38,8 +41,17 @@ public class Startup
             endpoints.MapControllers();
         });
 
-        // Log a configuration value from environment variables
-        var exampleSetting = _configuration["EXAMPLE_SETTING"];
-        Console.WriteLine($"EXAMPLE_SETTING: {exampleSetting}");
+        // Log configuration values to verify overrides.
+        var exampleSetting = _configuration["AppSettings:ExampleSetting"];
+        var demoVariable = _configuration["AppSettings:DemoVariable"];
+        Console.WriteLine($"ExampleSetting: {exampleSetting}");
+        Console.WriteLine($"DemoVariable: {demoVariable}");
     }
+}
+
+// AppSettings class to bind configuration values.
+public class AppSettings
+{
+    public string ExampleSetting { get; set; }
+    public string DemoVariable { get; set; }
 }
