@@ -1,10 +1,10 @@
-using System; // Add this directive
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using AppSettingsEnvOverride.Models; // Ensure correct namespace
+using AppSettingsEnvOverride.Models;
 
 [ApiController]
-[Route("demo")]
+[Route("/")]
 public class DemoController : ControllerBase
 {
     private readonly AppSettings _appSettings;
@@ -17,15 +17,11 @@ public class DemoController : ControllerBase
     [HttpGet]
     public IActionResult GetConfigurationValues()
     {
-        return Ok(new
+        var prettyJson = JsonSerializer.Serialize(_appSettings.DynamicSettings, new JsonSerializerOptions
         {
-            ExampleSetting = _appSettings.ExampleSetting,
-            DemoVariable = _appSettings.DemoVariable,
-            RuntimeEnvironmentVariables = new
-            {
-                ExampleSettingEnv = Environment.GetEnvironmentVariable("EXAMPLE_SETTING") ?? "Not Set",
-                DemoVariableEnv = Environment.GetEnvironmentVariable("DEMO_VARIABLE") ?? "Not Set"
-            }
+            WriteIndented = true
         });
+
+        return Content(prettyJson, "application/json");
     }
 }
