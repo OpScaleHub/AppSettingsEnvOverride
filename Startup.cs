@@ -25,52 +25,34 @@ public class Startup
     {
         services.AddControllers();
         services.AddEndpointsApiExplorer();
-
-        // Replace the default PhysicalFileProvider to disable file watching globally.
         services.AddSingleton<IFileProvider>(new NullFileProvider());
 
-        // Configure AppSettings and populate DynamicSettings
-        services.Configure<AppSettings>(options =>
+        // Configure AppSettings with both appsettings.json and environment variables
+        var appSettings = new AppSettings();
+
+        // First bind static settings
+        var section = _configuration.GetSection("AppSettings");
+        foreach (var child in section.GetChildren())
         {
-            // Bind static settings from appsettings.json
-            var appSettingsSection = _configuration.GetSection("AppSettings");
-            foreach (var setting in appSettingsSection.GetChildren())
-            {
-                options.DynamicSettings[setting.Key] = setting.Value;
-                _logger.LogDebug($"Added static setting: {setting.Key} = {setting.Value}");
-            }
+            appSettings.DynamicSettings[child.Key] = child.Value;
+            _logger.LogInformation($"Added config setting: {child.Key} = {child.Value}");
+        }
 
-            // Merge environment variables into DynamicSettings
-            _logger.LogInformation("Environment variables with prefix 'AppSettings_':");
-            foreach (var envVar in Environment.GetEnvironmentVariables().Keys)
+        // Then overlay environment variables (they take precedence)
+        foreach (var env in Environment.GetEnvironmentVariables().Keys)
+        {
+            var key = env.ToString();
+            if (key.StartsWith("AppSettings_"))
             {
-                var key = envVar.ToString();
-                if (key.StartsWith("AppSettings_"))
-                {
-                    var settingKey = key.Substring("AppSettings_".Length);
-                    var value = Environment.GetEnvironmentVariable(key);
-                    if (!string.IsNullOrEmpty(settingKey) && value != null)
-                    {
-                        options.DynamicSettings[settingKey] = value;
-                        _logger.LogDebug($"Merged environment variable: {settingKey} = {value}");
-                    }
-                }
+                var settingKey = key.Substring("AppSettings_".Length);
+                var value = Environment.GetEnvironmentVariable(key);
+                appSettings.DynamicSettings[settingKey] = value;
+                _logger.LogInformation($"Added env setting: {settingKey} = {value}");
             }
+        }
 
-            // Log the final DynamicSettings content
-            _logger.LogInformation("Final DynamicSettings content:");
-            if (options.DynamicSettings.Count == 0)
-            {
-                _logger.LogWarning("DynamicSettings is still empty after processing.");
-            }
-            else
-            {
-                foreach (var setting in options.DynamicSettings)
-                {
-                    _logger.LogInformation($"DynamicSetting: {setting.Key} = {setting.Value}");
-                }
-            }
-        });
+        // Register AppSettings with the correct type
+        services.AddSingleton<AppSettingsEnvOverride.Models.AppSettings>(appSettings);
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -93,10 +75,4 @@ public class Startup
             });
         });
     }
-}
-
-// AppSettings class to bind configuration values.
-public class AppSettings
-{
-    public Dictionary<string, string> DynamicSettings { get; set; } = new Dictionary<string, string>();
 }
