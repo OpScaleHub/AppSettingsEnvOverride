@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -17,6 +18,20 @@ public class DemoController : ControllerBase
     [HttpGet]
     public IActionResult GetConfigurationValues()
     {
+        // Log the settings for debugging
+        if (_appSettings.DynamicSettings.Count == 0)
+        {
+            Console.WriteLine("DynamicSettings is empty.");
+        }
+        else
+        {
+            foreach (var setting in _appSettings.DynamicSettings)
+            {
+                Console.WriteLine($"Setting: {setting.Key} = {setting.Value}");
+            }
+        }
+
+        // Return the settings as a pretty-printed JSON response
         var prettyJson = JsonSerializer.Serialize(_appSettings.DynamicSettings, new JsonSerializerOptions
         {
             WriteIndented = true
