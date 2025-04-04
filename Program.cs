@@ -1,32 +1,19 @@
-using System; // Add this directive
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.Configuration;
+using AppSettingsEnvOverride.Models; // Update namespace reference
 
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-{
-    Args = args,
-    ContentRootPath = AppContext.BaseDirectory, // Set to avoid default file watchers
-    ApplicationName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name
-});
+var builder = WebApplication.CreateBuilder(args);
 
-// Clear default configuration sources to avoid file watchers.
-builder.Configuration.Sources.Clear();
-builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false); // Disable file watching
-builder.Configuration.AddEnvironmentVariables();
-
-// Replace the default PhysicalFileProvider to disable file watching globally.
-builder.Services.AddSingleton<IFileProvider>(new NullFileProvider());
+// Add configuration sources.
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false); // Load defaults from appsettings.json
+builder.Configuration.AddEnvironmentVariables(); // Allow environment variables to override
 
 // Add services to the container.
 builder.Services.AddControllers();
-builder.Services.Configure<HostOptions>(options =>
-{
-    options.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
-});
+builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings")); // Bind AppSettings section
 
 var app = builder.Build();
 
@@ -39,11 +26,3 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 
 app.Run();
-
-// Custom NullFileProvider to disable file watching.
-public class NullFileProvider : IFileProvider
-{
-    public IDirectoryContents GetDirectoryContents(string subpath) => NotFoundDirectoryContents.Singleton;
-    public IFileInfo GetFileInfo(string subpath) => new NotFoundFileInfo(subpath);
-    public IChangeToken Watch(string filter) => NullChangeToken.Singleton;
-}
