@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using AppSettingsEnvOverride.Models;
+using System.Threading.Tasks;
 
 public class Startup
 {
@@ -68,10 +69,10 @@ public class Startup
         {
             endpoints.MapControllers();
 
-            // Redirect root path to the DemoController's GetConfigurationValues endpoint
-            endpoints.MapGet("/", async context =>
+            endpoints.MapGet("/", context =>
             {
                 context.Response.Redirect("/Demo/GetConfigurationValues");
+                return Task.CompletedTask;
             });
         });
     }
