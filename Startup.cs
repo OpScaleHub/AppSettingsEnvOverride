@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.FileProviders;
 
 public class Startup
 {
@@ -18,6 +19,9 @@ public class Startup
     {
         services.AddControllers();
         services.AddEndpointsApiExplorer(); // Enable API endpoints
+
+        // Replace the default PhysicalFileProvider to disable file watching globally.
+        services.AddSingleton<IFileProvider>(new NullFileProvider());
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

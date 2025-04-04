@@ -1,18 +1,22 @@
+using System; // Add this directive
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Primitives;
-using Microsoft.Extensions.Configuration; // Add this directive
+using Microsoft.Extensions.Configuration;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Add configuration sources.
-builder.Host.ConfigureAppConfiguration((hostingContext, config) =>
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
-    config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
-    config.AddEnvironmentVariables();
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory, // Set to avoid default file watchers
+    ApplicationName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name
 });
+
+// Clear default configuration sources to avoid file watchers.
+builder.Configuration.Sources.Clear();
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false); // Disable file watching
+builder.Configuration.AddEnvironmentVariables();
 
 // Replace the default PhysicalFileProvider to disable file watching globally.
 builder.Services.AddSingleton<IFileProvider>(new NullFileProvider());
