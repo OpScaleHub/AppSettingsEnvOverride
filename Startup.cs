@@ -1,20 +1,24 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging;
 using AppSettingsEnvOverride.Models;
 
 public class Startup
 {
     private readonly IConfiguration _configuration;
+    private readonly ILogger<Startup> _logger;
 
-    public Startup(IConfiguration configuration)
+    public Startup(IConfiguration configuration, ILogger<Startup> logger)
     {
         _configuration = configuration;
+        _logger = logger;
     }
 
     public void ConfigureServices(IServiceCollection services)
@@ -25,18 +29,13 @@ public class Startup
         // Replace the default PhysicalFileProvider to disable file watching globally.
         services.AddSingleton<IFileProvider>(new NullFileProvider());
 
-        // Bind AppSettings section and environment variables with prefix "AppSettings_"
+        // Configure AppSettings and populate DynamicSettings
         services.Configure<AppSettings>(options =>
         {
-            // Load values from appsettings.json
-            var appSettingsSection = _configuration.GetSection("AppSettings");
-            foreach (var setting in appSettingsSection.GetChildren())
-            {
-                options.DynamicSettings[setting.Key] = setting.Value;
-                Console.WriteLine($"Loaded from appsettings.json: {setting.Key} = {setting.Value}");
-            }
+            // Bind static settings from appsettings.json
+            _configuration.GetSection("AppSettings").Bind(options);
 
-            // Override with environment variables
+            // Merge environment variables into DynamicSettings
             foreach (var envVar in Environment.GetEnvironmentVariables().Keys)
             {
                 var key = envVar.ToString();
@@ -44,9 +43,28 @@ public class Startup
                 {
                     var settingKey = key.Substring("AppSettings_".Length);
                     var value = Environment.GetEnvironmentVariable(key);
-                    options.DynamicSettings[settingKey] = value;
-                    Console.WriteLine($"Overridden by environment variable: {settingKey} = {value}");
+                    if (!string.IsNullOrEmpty(settingKey) && value != null)
+                    {
+                        options.DynamicSettings[settingKey] = value;
+                    }
                 }
+            }
+
+            // Add static settings to DynamicSettings
+            foreach (var property in typeof(AppSettings).GetProperties())
+            {
+                var key = property.Name;
+                var value = property.GetValue(options)?.ToString();
+                if (!string.IsNullOrEmpty(value))
+                {
+                    options.DynamicSettings[key] = value;
+                }
+            }
+
+            // Log the final DynamicSettings content
+            foreach (var setting in options.DynamicSettings)
+            {
+                _logger.LogInformation($"DynamicSetting: {setting.Key} = {setting.Value}");
             }
         });
     }
@@ -63,6 +81,12 @@ public class Startup
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
+
+            // Redirect root path to the DemoController's GetConfigurationValues endpoint
+            endpoints.MapGet("/", async context =>
+            {
+                context.Response.Redirect("/Demo/GetConfigurationValues");
+            });
         });
     }
 }

@@ -1,42 +1,37 @@
-using System;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using AppSettingsEnvOverride.Models;
 
-[ApiController]
-[Route("/")]
-public class DemoController : ControllerBase
+namespace AppSettingsEnvOverride.Controllers
 {
-    private readonly AppSettings _appSettings;
-
-    public DemoController(IOptions<AppSettings> appSettings)
+    [ApiController]
+    [Route("[controller]")]
+    public class DemoController : ControllerBase
     {
-        _appSettings = appSettings.Value;
-    }
+        private readonly AppSettings _appSettings;
 
-    [HttpGet]
-    public IActionResult GetConfigurationValues()
-    {
-        // Log the settings for debugging
-        if (_appSettings.DynamicSettings.Count == 0)
+        public DemoController(IOptions<AppSettings> appSettings)
         {
-            Console.WriteLine("DynamicSettings is empty.");
+            _appSettings = appSettings.Value;
         }
-        else
+
+        [HttpGet("GetConfigurationValues")]
+        public IActionResult GetConfigurationValues()
         {
-            foreach (var setting in _appSettings.DynamicSettings)
+            // Return the full DynamicSettings dictionary
+            return Ok(_appSettings.DynamicSettings);
+        }
+
+        [HttpGet("/")]
+        public IActionResult GetRootConfigurationValues()
+        {
+            if (_appSettings.DynamicSettings.Count == 0)
             {
-                Console.WriteLine($"Setting: {setting.Key} = {setting.Value}");
+                return Ok(new { Message = "DynamicSettings is empty" });
             }
+
+            // Return the full DynamicSettings dictionary
+            return Ok(_appSettings.DynamicSettings);
         }
-
-        // Return the settings as a pretty-printed JSON response
-        var prettyJson = JsonSerializer.Serialize(_appSettings.DynamicSettings, new JsonSerializerOptions
-        {
-            WriteIndented = true
-        });
-
-        return Content(prettyJson, "application/json");
     }
 }
