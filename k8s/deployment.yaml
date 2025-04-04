@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: appsettings-env-override
-        image: your-dockerhub-username/appsettings-env-override:latest
+        image: ghcr.io/opscalehub/appsettingsenvoverride:main
         ports:
         - containerPort: 8080
         resources:
@@ -43,4 +43,4 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 8080
-  type: LoadBalancer
+  type: clusterIP
