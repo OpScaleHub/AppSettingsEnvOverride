@@ -17,6 +17,7 @@ spec:
       containers:
       - name: appsettings-env-override
         image: ghcr.io/opscalehub/appsettingsenvoverride:main
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
         resources:
