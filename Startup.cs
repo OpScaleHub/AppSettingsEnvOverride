@@ -35,7 +35,21 @@ public class Startup
             // Bind static settings from appsettings.json
             _configuration.GetSection("AppSettings").Bind(options);
 
+            // Log static settings
+            _logger.LogInformation("Static settings from appsettings.json:");
+            foreach (var property in typeof(AppSettings).GetProperties())
+            {
+                var key = property.Name;
+                var value = property.GetValue(options)?.ToString();
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _logger.LogInformation($"StaticSetting: {key} = {value}");
+                    options.DynamicSettings[key] = value; // Add to DynamicSettings
+                }
+            }
+
             // Merge environment variables into DynamicSettings
+            _logger.LogInformation("Environment variables with prefix 'AppSettings_':");
             foreach (var envVar in Environment.GetEnvironmentVariables().Keys)
             {
                 var key = envVar.ToString();
@@ -45,23 +59,14 @@ public class Startup
                     var value = Environment.GetEnvironmentVariable(key);
                     if (!string.IsNullOrEmpty(settingKey) && value != null)
                     {
+                        _logger.LogInformation($"EnvVariable: {settingKey} = {value}");
                         options.DynamicSettings[settingKey] = value;
                     }
                 }
             }
 
-            // Add static settings to DynamicSettings
-            foreach (var property in typeof(AppSettings).GetProperties())
-            {
-                var key = property.Name;
-                var value = property.GetValue(options)?.ToString();
-                if (!string.IsNullOrEmpty(value))
-                {
-                    options.DynamicSettings[key] = value;
-                }
-            }
-
             // Log the final DynamicSettings content
+            _logger.LogInformation("Final DynamicSettings content:");
             foreach (var setting in options.DynamicSettings)
             {
                 _logger.LogInformation($"DynamicSetting: {setting.Key} = {setting.Value}");
