@@ -1,31 +1,47 @@
-using System; // Add this directive
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using AppSettingsEnvOverride.Models; // Ensure correct namespace
+using Microsoft.Extensions.Logging;
+using AppSettingsEnvOverride.Models;
+using System;
+using System.Linq;
 
-[ApiController]
-[Route("demo")]
-public class DemoController : ControllerBase
+namespace AppSettingsEnvOverride.Controllers
 {
-    private readonly AppSettings _appSettings;
-
-    public DemoController(IOptions<AppSettings> appSettings)
+    [ApiController]
+    [Route("[controller]")]
+    public class DemoController : ControllerBase
     {
-        _appSettings = appSettings.Value;
-    }
+        private readonly AppSettings _appSettings;
+        private readonly ILogger<DemoController> _logger;
 
-    [HttpGet]
-    public IActionResult GetConfigurationValues()
-    {
-        return Ok(new
+        public DemoController(AppSettings appSettings, ILogger<DemoController> logger)
         {
-            ExampleSetting = _appSettings.ExampleSetting,
-            DemoVariable = _appSettings.DemoVariable,
-            RuntimeEnvironmentVariables = new
+            _appSettings = appSettings;
+            _logger = logger;
+        }
+
+        [HttpGet("/")]
+        public IActionResult GetRootConfigurationValues()
+        {
+            return Ok(new
             {
-                ExampleSettingEnv = Environment.GetEnvironmentVariable("EXAMPLE_SETTING") ?? "Not Set",
-                DemoVariableEnv = Environment.GetEnvironmentVariable("DEMO_VARIABLE") ?? "Not Set"
-            }
-        });
+                Settings = _appSettings.DynamicSettings,
+                DebugInfo = new
+                {
+                    EnvironmentVariables = Environment.GetEnvironmentVariables()
+                        .Cast<System.Collections.DictionaryEntry>()
+                        .ToDictionary(
+                            entry => entry.Key.ToString(),
+                            entry => entry.Value?.ToString()
+                        ),
+                    Runtime = new
+                    {
+                        Framework = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
+                        OS = System.Runtime.InteropServices.RuntimeInformation.OSDescription,
+                        ProcessArchitecture = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString()
+                    }
+                },
+                Timestamp = DateTime.UtcNow
+            });
+        }
     }
 }

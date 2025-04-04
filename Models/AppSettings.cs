@@ -1,8 +1,9 @@
+using System.Collections.Generic;
+
 namespace AppSettingsEnvOverride.Models
 {
     public class AppSettings
     {
-        public string ExampleSetting { get; set; }
-        public string DemoVariable { get; set; }
+        public Dictionary<string, string> DynamicSettings { get; set; } = new Dictionary<string, string>();
     }
 }
