@@ -71,7 +71,7 @@ public class Startup
 
             endpoints.MapGet("/", context =>
             {
-                context.Response.Redirect("/Demo/GetConfigurationValues");
+                context.Response.Redirect("/api/configuration");
                 return Task.CompletedTask;
             });
         });

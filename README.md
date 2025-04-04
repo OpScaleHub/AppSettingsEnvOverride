@@ -1,4 +1,4 @@
-# AppSettings Environment Override Demo
+# AppSettings Environment Override
 
 This application demonstrates how to use hierarchical configuration in .NET with the ability to override settings using environment variables.
 
@@ -51,7 +51,7 @@ docker run --rm --publish 8080:8080 \
 Making a request to the application shows both the configuration values and debug information:
 
 ```bash
-$ http http://localhost:8080/
+$ http http://localhost:8080/api/configuration
 ```
 
 Response:
@@ -64,16 +64,7 @@ Response:
         "nested.Foo": "Bar"
     },
     "debugInfo": {
-        "environmentVariables": {
-            "AppSettings_Foo": "BarBar",
-            "AppSettings_nested__Baz": "BazBaz",
-            // ... other environment variables ...
-        },
-        "runtime": {
-            "framework": ".NET 8.0.14",
-            "os": "Debian GNU/Linux 12 (bookworm)",
-            "processArchitecture": "X64"
-        }
+        // ... debug info ...
     },
     "timestamp": "2025-04-04T18:55:24.5121304Z"
 }

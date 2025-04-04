@@ -7,20 +7,22 @@ using System.Linq;
 namespace AppSettingsEnvOverride.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
-    public class DemoController : ControllerBase
+    [Route("api/[controller]")]
+    public class ConfigurationController : ControllerBase
     {
         private readonly AppSettings _appSettings;
-        private readonly ILogger<DemoController> _logger;
+        private readonly ILogger<ConfigurationController> _logger;
 
-        public DemoController(AppSettings appSettings, ILogger<DemoController> logger)
+        public ConfigurationController(AppSettings appSettings, ILogger<ConfigurationController> logger)
         {
             _appSettings = appSettings;
             _logger = logger;
         }
 
-        [HttpGet("/")]
-        public IActionResult GetRootConfigurationValues()
+        [HttpGet]
+        [Route("/")]
+        [Route("")] // Also allow /api/configuration
+        public IActionResult GetConfigurationValues()
         {
             return Ok(new
             {
