@@ -11,6 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: false); // Load defaults from appsettings.json
 builder.Configuration.AddEnvironmentVariables(); // Allow environment variables to override
 
+// Log configuration values for debugging
+var appSettingsSection = builder.Configuration.GetSection("AppSettings");
+foreach (var setting in appSettingsSection.GetChildren())
+{
+    Console.WriteLine($"[Startup Debug] Static Setting: {setting.Key} = {setting.Value}");
+}
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings")); // Bind AppSettings section

@@ -40,13 +40,6 @@ public class Startup
                 _logger.LogDebug($"Added static setting: {setting.Key} = {setting.Value}");
             }
 
-            // Log static settings
-            _logger.LogInformation("Static settings from appsettings.json:");
-            foreach (var setting in options.DynamicSettings)
-            {
-                _logger.LogInformation($"StaticSetting: {setting.Key} = {setting.Value}");
-            }
-
             // Merge environment variables into DynamicSettings
             _logger.LogInformation("Environment variables with prefix 'AppSettings_':");
             foreach (var envVar in Environment.GetEnvironmentVariables().Keys)
@@ -58,7 +51,6 @@ public class Startup
                     var value = Environment.GetEnvironmentVariable(key);
                     if (!string.IsNullOrEmpty(settingKey) && value != null)
                     {
-                        _logger.LogInformation($"EnvVariable: {settingKey} = {value}");
                         options.DynamicSettings[settingKey] = value;
                         _logger.LogDebug($"Merged environment variable: {settingKey} = {value}");
                     }
@@ -67,9 +59,16 @@ public class Startup
 
             // Log the final DynamicSettings content
             _logger.LogInformation("Final DynamicSettings content:");
-            foreach (var setting in options.DynamicSettings)
+            if (options.DynamicSettings.Count == 0)
             {
-                _logger.LogInformation($"DynamicSetting: {setting.Key} = {setting.Value}");
+                _logger.LogWarning("DynamicSettings is still empty after processing.");
+            }
+            else
+            {
+                foreach (var setting in options.DynamicSettings)
+                {
+                    _logger.LogInformation($"DynamicSetting: {setting.Key} = {setting.Value}");
+                }
             }
         });
     }

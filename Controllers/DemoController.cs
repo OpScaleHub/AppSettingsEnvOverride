@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using AppSettingsEnvOverride.Models;
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace AppSettingsEnvOverride.Controllers
 {
@@ -10,10 +11,25 @@ namespace AppSettingsEnvOverride.Controllers
     public class DemoController : ControllerBase
     {
         private readonly AppSettings _appSettings;
+        private readonly ILogger<DemoController> _logger;
 
-        public DemoController(IOptions<AppSettings> appSettings)
+        public DemoController(IOptions<AppSettings> appSettings, ILogger<DemoController> logger)
         {
             _appSettings = appSettings.Value;
+            _logger = logger;
+
+            // Log the contents of DynamicSettings during controller initialization
+            if (_appSettings.DynamicSettings.Count == 0)
+            {
+                _logger.LogWarning("DynamicSettings is empty in DemoController constructor.");
+            }
+            else
+            {
+                foreach (var setting in _appSettings.DynamicSettings)
+                {
+                    _logger.LogInformation($"DynamicSetting in DemoController: {setting.Key} = {setting.Value}");
+                }
+            }
         }
 
         [HttpGet("GetConfigurationValues")]
