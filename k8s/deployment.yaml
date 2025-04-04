@@ -57,16 +57,13 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 10
         env:
-        - name: EXAMPLE_SETTING
-          valueFrom:
-            configMapKeyRef:
-              name: app-config
-              key: example-setting
-        - name: DEMO_VARIABLE
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets
-              key: demo-variable
+        - name: "AppSettings_Foo"
+          value: "BarBar"
+        - name: "AppSettings_nested__Baz"
+          value: "BazBaz"
+        - name: "AppSettings_Production_Setting"
+          value: "ExtendedProductionSetting"
+
 ---
 apiVersion: v1
 kind: Service
